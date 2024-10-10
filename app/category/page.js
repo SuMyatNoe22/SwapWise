@@ -45,7 +45,7 @@ export default function Home() {
   }, []);
 
   async function fetchCategory() {
-    const data = await fetch("/api/category");
+    const data = await fetch('/api/category');
     const categories = await data.json();
     const formattedCategories = categories.map((category) => ({
       ...category,
@@ -70,8 +70,8 @@ export default function Home() {
     const method = editMode ? "PUT" : "POST";  // Use PUT for editing, POST for creating
     const url = editMode
       ? `/api/category/${currentCategory._id}`  // Add category ID for editing
-      : "/api/category";  // For creating a new category
-
+      : `/api/category`;  // For creating a new category
+  
     fetch(url, {
       method,
       headers: {
