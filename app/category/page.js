@@ -108,6 +108,7 @@ export default function Home() {
           aria-describedby="modal-modal-description"
         >
           <CategoryForm onSubmit={handleCategoryFormSubmit} />
+          
         </Modal>
         <DataGrid
           slots={{
