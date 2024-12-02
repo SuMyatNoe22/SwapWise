@@ -35,7 +35,7 @@ export default function Layout() {
 
         <TouchableOpacity
           style={styles.tabButton}
-          onPress={() => router.push("/tabs/calendar")}
+          onPress={() => router.push("/(tabs)/calendar")}
         >
           <Entypo
             name="calendar"
@@ -51,21 +51,21 @@ export default function Layout() {
 
         <TouchableOpacity
           style={styles.tabButton}
-          onPress={() => router.push("/(tabs)/chat")}
+          onPress={() => router.push("/(tabs)/contactList")}
         >
           <FontAwesome
             name="comments-o"
             size={24}
             color={isActive("chat") ? "#1E1E84" : "#888"}
           />
-          <Text style={[styles.tabText, isActive("chat") && styles.activeTab]}>
+          <Text style={[styles.tabText, isActive("contactList") && styles.activeTab]}>
             Messages
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.tabButton}
-          onPress={() => router.push("/tabs/profile")}
+          onPress={() => router.push("/(tabs)/profile")}
         >
           <Ionicons
             name="person-outline"
