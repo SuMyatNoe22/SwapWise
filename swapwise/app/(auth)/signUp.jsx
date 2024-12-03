@@ -1,27 +1,59 @@
 import React, { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View, Alert, Image, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  Image,
+  StyleSheet,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { app } from "../../firebaseConfig"; // Import your Firebase config
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState(""); // User's full name
   const [username, setUsername] = useState(""); // Optional field
-  const router = useRouter();
-  const auth = getAuth(app);
+  const navigation = useNavigation(); // For navigation to other screens
+  const auth = getAuth(app); // Initialize Firebase Auth
+  const db = getFirestore(app);
+  const router = useRouter(); // Initialize Firestore
+
 
   const handleSignUp = async () => {
-    if (!email || !password || !username) {
+    if (!email || !password || !name || !username) {
       Alert.alert("Error", "Please fill in all fields.");
       return;
     }
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      Alert.alert("Success", "Account created successfully!");
-      router.push("/(tabs)/home"); // Navigate to the home screen
+      // Create the user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      // Save additional user details to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        name: name,
+        username: username,
+        email: email,
+        createdAt: new Date().toISOString(),
+      });
+
+      console.log("User signed up and details saved successfully!");
+
+      // Navigate to the WelcomePage with the user's name
+      navigation.navigate("Welcome", { name });
     } catch (error) {
-      Alert.alert("Error", error.message);
+      console.error("Sign-up error:", error.message);
+      Alert.alert("Error", error.message); // Display the error message
     }
   };
 
@@ -33,6 +65,13 @@ export default function SignUpPage() {
       </View>
 
       <View style={styles.form}>
+        <TextInput
+          style={styles.input}
+          placeholder="Full Name"
+          placeholderTextColor="#8A8A8A"
+          value={name}
+          onChangeText={(text) => setName(text)}
+        />
         <TextInput
           style={styles.input}
           placeholder="Username"

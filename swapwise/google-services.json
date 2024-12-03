@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "932109510789",
-    "project_id": "swapwise-5e6ae",
-    "storage_bucket": "swapwise-5e6ae.firebasestorage.app"
+    "project_number": "620289279679",
+    "project_id": "swapwise-authentication",
+    "storage_bucket": "swapwise-authentication.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:932109510789:android:bffa9f334aeb9f772321ec",
+        "mobilesdk_app_id": "1:620289279679:android:83bb9591cee33647ba680a",
         "android_client_info": {
-          "package_name": "com.myjulii.swapwise"
+          "package_name": "com.minions.SwapWise"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA4qcj0G5YbzgBZYULOW_HBXpXw9zC1qWs"
+          "current_key": "AIzaSyB1YTiUD1iS7sdplz0KiiGAaQ62miE3bHM"
         }
       ],
       "services": {

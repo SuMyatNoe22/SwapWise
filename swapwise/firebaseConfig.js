@@ -1,12 +1,12 @@
 import { initializeApp } from "firebase/app";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA4qcj0G5YbzgBZYULOW_HBXpXw9zC1qWs",
-  authDomain: "swapwise-5e6ae.firebaseapp.com",
-  projectId: "swapwise-5e6ae",
-  storageBucket: "swapwise-5e6ae.appspot.com",
-  messagingSenderId: "932109510789",
-  appId: "1:932109510789:android:bffa9f334aeb9f772321ec",
+  apiKey: "AIzaSyB1YTiUD1iS7sdplz0KiiGAaQ62miE3bHM",
+  authDomain: "swapwise-authentication.firebaseapp.com",
+  projectId: "swapwise-authentication",
+  storageBucket: "swapwise-authentication.firebasestorage.app",
+  messagingSenderId: "620289279679",
+  appId: "1:620289279679:android:83bb9591cee33647ba680a",
 };
 
 export const app = initializeApp(firebaseConfig);

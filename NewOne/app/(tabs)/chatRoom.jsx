@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useRouter } from "expo-router";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -9,13 +9,14 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import {
   getFirestore,
   collection,
   query,
   where,
   orderBy,
-  onSnapshot,
+  getDocs,
   addDoc,
   Timestamp,
 } from "firebase/firestore";
@@ -23,9 +24,11 @@ import { getAuth } from "firebase/auth";
 import { app } from "../../firebaseConfig";
 
 export default function ChatRoom() {
-  const router = useRouter();
-  const { userId, userName } = router.query || {};
-
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { userId: routeUserId, userName: routeUserName } = route.params || {};
+  const [userId, setUserId] = useState(routeUserId);
+  const [userName, setUserName] = useState(routeUserName);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
@@ -33,11 +36,22 @@ export default function ChatRoom() {
   const db = getFirestore(app);
   const currentUserId = auth.currentUser?.uid;
 
-  // Validate navigation parameters
+  // Generate chat ID
+  const chatId = [currentUserId, userId].sort().join('_');
+
+  useEffect(() => {
+    if (!routeUserId || !routeUserName) {
+      console.log("route.params is undefined or missing parameters");
+    } else {
+      setUserId(routeUserId);
+      setUserName(routeUserName);
+    }
+  }, [routeUserId, routeUserName]);
+
   useEffect(() => {
     if (!userId || !userName) {
       Alert.alert("Error", "Invalid user selected.");
-      router.back(); // Navigate back if invalid
+      navigation.goBack(); // Navigate back if invalid
     }
   }, [userId, userName]);
 
@@ -45,29 +59,36 @@ export default function ChatRoom() {
   useEffect(() => {
     if (!userId || !currentUserId) return; // Prevent fetching if userId is missing
 
-    const chatQuery = query(
-      collection(db, "messages"),
-      where("participants", "array-contains", currentUserId),
-      where("participants", "array-contains", userId),
-      orderBy("createdAt", "asc")
-    );
+    const fetchMessages = async () => {
+      try {
+        const chatQuery = query(
+          collection(db, "messages"),
+          where("chatId", "==", chatId),
+          orderBy("createdAt", "asc")
+        );
 
-    const unsubscribe = onSnapshot(chatQuery, (snapshot) => {
-      const fetchedMessages = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setMessages(fetchedMessages); // Safely set messages
-    });
+        const chatSnapshot = await getDocs(chatQuery);
+        const fetchedMessages = chatSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-    return () => unsubscribe();
-  }, [userId]);
+        setMessages(fetchedMessages);
+        console.log("Fetched messages:", fetchedMessages); // Debugging
+      } catch (error) {
+        console.error("Error fetching messages:", error.message);
+      }
+    };
+
+    fetchMessages();
+  }, [userId, currentUserId, chatId]);
 
   const handleSend = async () => {
     if (!newMessage.trim()) return;
 
     try {
       await addDoc(collection(db, "messages"), {
+        chatId: chatId,
         participants: [currentUserId, userId],
         sender: currentUserId,
         receiver: userId,
@@ -75,6 +96,30 @@ export default function ChatRoom() {
         createdAt: Timestamp.fromDate(new Date()),
       });
       setNewMessage(""); // Clear the input
+
+      // Refetch messages after sending a new one
+      const fetchMessages = async () => {
+        try {
+          const chatQuery = query(
+            collection(db, "messages"),
+            where("chatId", "==", chatId),
+            orderBy("createdAt", "asc")
+          );
+
+          const chatSnapshot = await getDocs(chatQuery);
+          const fetchedMessages = chatSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          setMessages(fetchedMessages);
+          console.log("Fetched messages after sending:", fetchedMessages); // Debugging
+        } catch (error) {
+          console.error("Error fetching messages:", error.message);
+        }
+      };
+
+      fetchMessages();
     } catch (error) {
       console.error("Error sending message:", error.message);
     }
@@ -82,10 +127,16 @@ export default function ChatRoom() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Chat with {userName}</Text>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
+        <Text style={styles.header}>Chat with {userName || "Loading..."}</Text>
+      </View>
+
       <FlatList
         data={messages}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id} // Ensure each key is unique
         renderItem={({ item }) => (
           <View
             style={[
@@ -99,6 +150,7 @@ export default function ChatRoom() {
           </View>
         )}
       />
+
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -106,6 +158,7 @@ export default function ChatRoom() {
           value={newMessage}
           onChangeText={setNewMessage}
         />
+
         <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
           <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
@@ -120,12 +173,17 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#FFFFFF",
   },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
   header: {
     fontSize: 18,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 10,
     color: "#1E1E84",
+    marginLeft: 10, // Adjust this value as needed
   },
   messageContainer: {
     padding: 10,
@@ -139,11 +197,15 @@ const styles = StyleSheet.create({
   },
   otherMessage: {
     alignSelf: "flex-start",
-    backgroundColor: "#F0F0F0",
+    backgroundColor: "#e65f17",
   },
   messageText: {
     color: "#FFFFFF",
   },
+  otherMessageText: { color: "#000000",
+      },
+
+
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",

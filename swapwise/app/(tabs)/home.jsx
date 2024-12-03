@@ -1,21 +1,21 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "expo-router";
 
 export default function Home() {
-  const auth = getAuth();
+  const auth = getAuth(); // Ensure this is connected to your Firebase config
   const router = useRouter();
 
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => {
-        Alert.alert("Success", "Logged out successfully!");
-        router.push("/(auth)/signIn");
-      })
-      .catch((error) => {
-        Alert.alert("Error", error.message);
-      });
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth); // Log out the user
+      console.log("Logged out successfully!"); // Debugging
+      router.push("/(auth)/signIn"); // Navigate to sign-in page
+    } catch (error) {
+      console.error("Sign out error:", error.message); // Debugging
+      Alert.alert("Error", error.message); // Display error to the user
+    }
   };
 
   return (

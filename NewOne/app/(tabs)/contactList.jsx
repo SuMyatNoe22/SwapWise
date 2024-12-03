@@ -30,14 +30,17 @@ export default function Chat() {
     };
 
     fetchUsers();
-  }, []);
+  }, [currentUserId]);
 
   const handleChatStart = (user) => {
     console.log("Navigating to chatRoom with:", user); // Debugging
+    // Use user.id to navigate to the dynamic chat room
+    console.log("Navigating to chatRoom with:", user.email);
+    console.log("Navigating to chatRoom with:", user.id, user.name);
     router.push({
-      pathname: "/(tabs)/chatRoom",
-      query: { userId: user.id, userName: user.name },
-    });
+      pathname: "/chatRoom",
+      params: { userId: user.id, userName: user.name }, // Pass the correct user data
+    }); // Pass the selected user's ID
   };
 
   return (
